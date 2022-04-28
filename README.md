@@ -14,6 +14,6 @@ Como executar:
 -Reconhece  os operadores lógicos (e, ou, maior(igual), menor(igual)) e aritméticos para operações básicas.
 -Possui distinção de separadores entre tokens.
 
--Recebe a entrada por arquivo de texto e retorna tabela de tokens em arquivo de texto.
--Exibe erros léxicos com linha e coluna onde foram encontrados no terminal.
+-Recebe a entrada por arquivo de texto e retorna tabela de tokens e erros, caso existam, em arquivo de texto.
+-Exibe mensagem de aviso caso o número de erros definidos como máximo seja encontrado.
 
