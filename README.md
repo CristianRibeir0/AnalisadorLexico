@@ -16,4 +16,3 @@ Como executar:
 
 -Recebe a entrada por arquivo de texto e retorna tabela de tokens e erros, caso existam, em arquivo de texto.
 -Exibe mensagem de aviso caso o número de erros definidos como máximo seja encontrado.
-
