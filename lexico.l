@@ -4,8 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define MAX_ERROS 20
+
 void adc_tabela(char* tk, char* val);
+void adc_erro(char erro,int c_atual);
 void persiste_tabela();
+void persiste_erros();
 
 typedef struct Obj{
     int lin;
@@ -15,14 +19,23 @@ typedef struct Obj{
     struct Obj* prox;
 }obj;
 
+typedef struct Err{
+    char c_erro;
+    int lin;
+    int col;
+}err;
+
 int coluna = 1;
 int linha = 1;
 obj* tabela;
 obj** aux;
+err* erros;
+int n_erros = 0;
+int pos_sep;
 
 %}
 
-RESERVADA (int|float|string|if|else|while|void|printf)
+RESERVADA (main|int|float|string|if|else|while|void|printf)
 DIGITO [0-9]
 LETRA [a-zA-Z]
 LITERAL \"[^\"]*\"
@@ -67,6 +80,9 @@ ERROR .
 {RESERVADA}/{SEPARADOR} {adc_tabela("RESERVADA", yytext); coluna+=strlen(yytext);    
 }
 
+{RESERVADA}{SEPARADOR_NUM} {pos_sep = strlen(yytext)-1; adc_erro(yytext[pos_sep], coluna+pos_sep); yytext[pos_sep] = '\0'; adc_tabela("RESERVADA", yytext); coluna+=pos_sep+1;   
+}
+
 {IDENTIFICADOR}/{SEPARADOR_NUM} {adc_tabela("IDENTIFICADOR", yytext); coluna+=strlen(yytext);    
 }
 
@@ -79,20 +95,23 @@ ERROR .
 {OP_LOGI}/{SEPARADOR_OP} {adc_tabela("OP_LOGI", yytext);}
 
 
-. {printf("\nCharacter n reconhecido: |%s|\ncoluna: %d\nlinha: %d\n", yytext, coluna, linha); coluna+=1;}
+. {adc_erro(yytext[0], coluna); coluna+=1;}
 %%
 
 int main(int argc, char* argv[]){
     tabela = (obj*) calloc(1, sizeof(obj));
+    erros = (err*) calloc(20, sizeof(err));
     aux = &(tabela->prox);
-    
-    	if(argc > 1)
+
+    if(argc > 1)
 	{
 		FILE *fp = fopen(argv[1], "r");
 		if(fp)
 			yyin = fp;
 	}
 	yylex();
+    persiste_tabela();
+    persiste_erros();
 	return 1;
 }
 
@@ -115,10 +134,32 @@ void adc_tabela(char* tk, char* val){
 }
 
 void persiste_tabela(){
-    FILE* saida = fopen("saida.txt", "w");
+    FILE* saida = fopen("tabela_tokens.txt", "w");
     obj* atual = tabela->prox;
     while(atual != NULL){
         fprintf(saida,"%s %s %d %d\n",atual->token, atual->valor, atual->lin, atual->col);
         atual = atual->prox;
     }
+    fclose(saida);
+}
+
+void adc_erro(char erro,int c_atual){
+
+    if(n_erros < MAX_ERROS){
+        erros[n_erros].c_erro = erro;
+        erros[n_erros].lin = linha;
+        erros[n_erros].col = c_atual;
+        n_erros++;
+    }
+    else{
+        printf("%d Erros: Limite de erros identificados atingidos!\nReveja seu codigo!\n", MAX_ERROS);
+    }
+}
+
+void persiste_erros(){
+    FILE* saida_erros = fopen("saida_erros.txt", "w");
+    for(int i=0; i < n_erros; i++){
+        fprintf(saida_erros,"%c %d %d\n", erros[i].c_erro, erros[i].lin, erros[i].col);
+    }
+    fclose(saida_erros);
 }
