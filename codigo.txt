@@ -1,8 +1,8 @@
-void main(){
+void main=(){
     printf("Hello World"); 
     int a=5;  
     *texto = "asd";
-    *=;
+    *=; //comentario
     while(b<10){
         a = a + 2;
         b++;
